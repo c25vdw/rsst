@@ -29,7 +29,11 @@ impl SubscriptionsController {
     }
     pub fn move_cursor(&mut self, dir: CursorDir) {
         match dir {
-            CursorDir::Up => self.buf.cy = self.buf.cy.saturating_sub(1),
+            CursorDir::Up => {
+                if self.buf.cy > 1 {
+                    self.buf.cy -= 1;
+                }
+            }
             CursorDir::Down => {
                 if self.buf.cy < self.buf.rows.len() {
                     self.buf.cy += 1;

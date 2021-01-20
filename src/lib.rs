@@ -38,12 +38,15 @@ impl App {
                     // n: the number of bytes read. should be one
                     // 0b11111 is CTRL
                     // 0x31 is Q. if CTRL+Q exit loop
-                    self.process_key(one_byte[0])?;
+                    if self.process_key(one_byte[0]).is_err() {
+                        break;
+                    };
                 }
                 _ => (),
             }
             self.draw()?;
         }
+        Ok(())
     }
 
     fn process_key(&mut self, byte: u8) -> Result<(), Box<dyn Error>> {

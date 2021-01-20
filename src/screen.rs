@@ -68,7 +68,7 @@ impl Screen {
 
     pub fn refresh_screen(&mut self) -> Result<(), io::Error> {
         // TODO hide the cursor and use a custom cursor
-        self.stdout.write(b"\x1b[2J")?; // erase the screen
+        self.stdout.write(b"\x1b[2J")?;
         self.stdout.write(b"\x1b[H")?; // cursor position: default to [1;1H
         self.stdout.flush()?;
         Ok(())
@@ -88,7 +88,7 @@ impl Screen {
         // write out all the rows
         for row in buf.rows.iter() {
             // println!("{}\r", row);
-            write!(output_buf, "{}\r\n", row);
+            write!(output_buf, "{}\r\n", row)?;
         }
         write!(output_buf, "\x1b[{};{}H", buf.cy, buf.cx)?;
         self.write_flush(&output_buf)?;
@@ -98,6 +98,7 @@ impl Screen {
 
 pub struct RawInputMode {
     stdin: io::Stdin,
+    stdout: io::Stdout,
     original: termios::Termios,
 }
 
@@ -106,6 +107,11 @@ impl RawInputMode {
         use termios::*;
 
         let stdin = io::stdin();
+        let mut stdout = io::stdout();
+
+        stdout.write(b"\x1b[?47h")?;
+        stdout.flush()?;
+
         let fd = stdin.as_raw_fd();
         let mut raw = Termios::from_fd(fd)?; // 0 for stdin
         tcgetattr(fd, &mut raw)?;
@@ -118,14 +124,21 @@ impl RawInputMode {
         raw.c_cc[VMIN] = 0;
         raw.c_cc[VTIME] = 1;
         tcsetattr(fd, TCSAFLUSH, &raw)?;
-        println!("raw input enabled");
-        Ok(RawInputMode { stdin, original })
+        Ok(RawInputMode {
+            stdin,
+            stdout,
+            original,
+        })
     }
 }
 
 impl Drop for RawInputMode {
     fn drop(&mut self) {
         use termios::*;
+        self.stdout
+            .write(b"\x1b[2J\x1b[H")
+            .expect("writing back saved terminal");
+
         tcsetattr(self.stdin.as_raw_fd(), TCSAFLUSH, &self.original)
             .expect("cannot set original TC attributes");
     }
