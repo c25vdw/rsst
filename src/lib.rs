@@ -1,7 +1,10 @@
 mod buffer;
 mod screen;
-pub use buffer::{Buffer, CursorDir, SubscriptionsController};
+mod subscription;
+
+pub use buffer::{Buffer, CursorDir};
 pub use screen::{RawInputMode, Screen};
+pub use subscription::{Subscription, SubscriptionsController};
 
 use std::error::Error;
 use std::io::{self, Read};
@@ -25,7 +28,7 @@ impl App {
         Ok(App {
             state,
             screen,
-            subscription_controller: SubscriptionsController::empty(),
+            subscription_controller: SubscriptionsController::new()?,
         })
     }
     pub fn start(&mut self) -> Result<(), Box<dyn Error>> {
@@ -70,8 +73,11 @@ impl App {
 
     fn handle_key_sub(&mut self, byte: u8) {
         match byte {
-            106u8 => self.subscription_controller.move_cursor(CursorDir::Down),
-            107u8 => self.subscription_controller.move_cursor(CursorDir::Up),
+            106u8 => self
+                .subscription_controller
+                .buf
+                .move_cursor(CursorDir::Down),
+            107u8 => self.subscription_controller.buf.move_cursor(CursorDir::Up),
             _ => (),
         }
     }

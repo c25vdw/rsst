@@ -107,10 +107,7 @@ impl RawInputMode {
         use termios::*;
 
         let stdin = io::stdin();
-        let mut stdout = io::stdout();
-
-        stdout.write(b"\x1b[?47h")?;
-        stdout.flush()?;
+        let stdout = io::stdout();
 
         let fd = stdin.as_raw_fd();
         let mut raw = Termios::from_fd(fd)?; // 0 for stdin

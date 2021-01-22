@@ -4,39 +4,23 @@ pub struct Buffer {
     pub rows: Vec<String>,
 }
 
-pub struct SubscriptionsController {
-    pub buf: Buffer,
-}
-
 #[derive(Copy, Clone, PartialEq)] // why
 pub enum CursorDir {
     Up,
     Down,
 }
 
-impl SubscriptionsController {
-    pub fn empty() -> Self {
-        Self {
-            buf: Buffer {
-                cx: 1,
-                cy: 1,
-                rows: "hello world what the hell are you doing"
-                    .split(' ')
-                    .map(|x| x.to_string())
-                    .collect::<Vec<_>>(),
-            },
-        }
-    }
+impl Buffer {
     pub fn move_cursor(&mut self, dir: CursorDir) {
         match dir {
             CursorDir::Up => {
-                if self.buf.cy > 1 {
-                    self.buf.cy -= 1;
+                if self.cy > 1 {
+                    self.cy -= 1;
                 }
             }
             CursorDir::Down => {
-                if self.buf.cy < self.buf.rows.len() {
-                    self.buf.cy += 1;
+                if self.cy < self.rows.len() {
+                    self.cy += 1;
                 }
             }
         }
