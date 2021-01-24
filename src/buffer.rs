@@ -1,7 +1,18 @@
+#[derive(Clone)]
 pub struct Buffer {
     pub cx: usize,
     pub cy: usize,
     pub rows: Vec<String>,
+}
+
+impl Default for Buffer {
+    fn default() -> Self {
+        Buffer {
+            cx: 1,
+            cy: 1,
+            rows: vec![],
+        }
+    }
 }
 
 #[derive(Copy, Clone, PartialEq)] // why

@@ -1,7 +1,7 @@
-use std::env::current_dir;
 use std::io::{BufRead, BufReader};
+use std::{env::current_dir, vec};
 
-use crate::{Buffer, CursorDir};
+use crate::Buffer;
 
 pub struct SubscriptionsController {
     pub buf: Buffer,
@@ -45,12 +45,27 @@ impl SubscriptionsController {
             .unwrap()
             .to_string();
 
-        println!("curr_diff: {:?}", curr_dif);
         SubscriptionsController::from_url_file(Some(curr_dif + "/urls"))
     }
+
+    pub fn select(&self) -> Subscription {
+        self.subscriptions
+            .get(self.buf.cy - 0)
+            .expect("failed to get the selected subsctription")
+            .clone()
+    }
+
+    pub fn buf_mut(&mut self) -> &mut Buffer {
+        &mut self.buf
+    }
+
+    pub fn buf(&self) -> &Buffer {
+        &self.buf
+    }
+
     pub fn from_url_file(filepath: Option<String>) -> Result<Self, Box<dyn std::error::Error>> {
         // https://stackoverflow.com/a/35820003/7358099
-        use std::{env, fs};
+        use std::fs;
         if let Some(path) = filepath {
             let file = fs::File::open(path)?;
             let buf = BufReader::new(file);
@@ -58,10 +73,11 @@ impl SubscriptionsController {
                 .lines()
                 .filter_map(|l| {
                     if let Ok(url) = l {
-                        Some(Subscription { url })
-                    } else {
-                        None
+                        if valid_url(&url) {
+                            return Some(Subscription { url });
+                        }
                     }
+                    None
                 })
                 .collect::<Vec<Subscription>>();
             return Ok(Self {
@@ -69,6 +85,18 @@ impl SubscriptionsController {
                 subscriptions,
             });
         }
-        Err("cannot open the file".into())
+        Ok(Self {
+            buf: Buffer {
+                cx: 1,
+                cy: 1,
+                rows: vec![],
+            },
+            subscriptions: vec![],
+        })
     }
+}
+
+fn valid_url(url: &str) -> bool {
+    // TODO
+    url.len() > 0
 }

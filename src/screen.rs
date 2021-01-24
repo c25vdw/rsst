@@ -82,7 +82,7 @@ impl Screen {
 
     pub fn render(&mut self, buf: &Buffer) -> Result<(), io::Error> {
         // place cursor at the beginning
-        self.write_flush(b"\x1b[1H")?;
+        self.write_flush(b"\x1b[2J\x1b[1H")?;
 
         let mut output_buf = Vec::with_capacity((self.height as usize + 2) * self.width as usize);
         // write out all the rows
