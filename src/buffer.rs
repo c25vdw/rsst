@@ -15,6 +15,12 @@ impl Default for Buffer {
     }
 }
 
+pub mod consts {
+    pub const UP: u8 = 107;
+    pub const DOWN: u8 = 106;
+    pub const LEFT: u8 = 104;
+    pub const RIGHT: u8 = 108;
+}
 #[derive(Copy, Clone, PartialEq)] // why
 pub enum CursorDir {
     Up,

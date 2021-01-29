@@ -7,8 +7,7 @@ edition = "2018"
 [dependencies]
 termios = "0.3.3"
 rss = "1.10.0"
-reqwest = "0.11.0"
-tokio = { version = "1", features = ["full"] }
+reqwest = { version = "0.11.0", features = ["blocking"] }
 anyhow = "1.0.38"
 thiserror = "1.0"
 html2text = "0.2.1"

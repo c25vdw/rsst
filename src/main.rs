@@ -1,11 +1,11 @@
-use rsst::{App, RawInputMode};
+use anyhow::Result;
+use rsst::{run, RawInputMode};
 
-#[tokio::main]
-pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
+pub fn main() -> Result<()> {
     let _raw_input_mode = RawInputMode::new().unwrap();
-    let mut app = App::new()?;
-
-    app.start().await?;
-
+    if let Err(e) = run() {
+        drop(_raw_input_mode);
+        eprintln!("main error: {:?}", e);
+    }
     Ok(())
 }

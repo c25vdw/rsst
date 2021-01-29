@@ -1,3 +1,4 @@
+use anyhow::Result;
 use std::io::{self, Read, Write};
 use std::os::unix::io::AsRawFd;
 
@@ -11,7 +12,7 @@ pub struct Screen {
 }
 
 impl Screen {
-    pub fn new() -> Result<Self, Box<dyn std::error::Error>> {
+    pub fn new() -> Result<Self> {
         let stdout = io::stdout();
         let stdin = io::stdin();
 
@@ -132,9 +133,9 @@ impl RawInputMode {
 impl Drop for RawInputMode {
     fn drop(&mut self) {
         use termios::*;
-        self.stdout
-            .write(b"\x1b[2J\x1b[H")
-            .expect("writing back saved terminal");
+        // self.stdout
+        //     .write_all(b"\x1b[2J\x1b[1H")
+        //     .expect("failed to clean up screen");
 
         tcsetattr(self.stdin.as_raw_fd(), TCSAFLUSH, &self.original)
             .expect("cannot set original TC attributes");
