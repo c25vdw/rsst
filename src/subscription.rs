@@ -2,7 +2,7 @@ use std::io::{BufRead, BufReader};
 use std::{env::current_dir, vec};
 
 use crate::Buffer;
-
+use crate::Result;
 pub struct SubscriptionsController {
     pub buf: Buffer,
     pub subscriptions: Vec<Subscription>,
@@ -38,7 +38,7 @@ impl SubscriptionsController {
         }
     }
 
-    pub fn new() -> Result<Self, Box<dyn std::error::Error>> {
+    pub fn new() -> Result<Self> {
         let curr_dif = current_dir()
             .expect("failed to get current dir")
             .to_str()
@@ -63,7 +63,7 @@ impl SubscriptionsController {
         &self.buf
     }
 
-    pub fn from_url_file(filepath: Option<String>) -> Result<Self, Box<dyn std::error::Error>> {
+    pub fn from_url_file(filepath: Option<String>) -> Result<Self> {
         // https://stackoverflow.com/a/35820003/7358099
         use std::fs;
         if let Some(path) = filepath {
