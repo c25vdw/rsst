@@ -93,6 +93,9 @@ impl App {
 
     async fn handle_key_feed(&mut self, byte: u8) -> Result<()> {
         match byte {
+            104u8 => {
+                self.state = AppState::Subscription;
+            }
             106u8 => self.feed_controller.buf.move_cursor(CursorDir::Down),
             107u8 => self.feed_controller.buf.move_cursor(CursorDir::Up),
             108u8 => {}

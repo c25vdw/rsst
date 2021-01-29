@@ -10,7 +10,7 @@ pub struct SubscriptionsController {
 
 #[derive(Debug, Clone)]
 pub struct Subscription {
-    url: String,
+    pub url: String,
 }
 
 impl From<Vec<Subscription>> for Buffer {
