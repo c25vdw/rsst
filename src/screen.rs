@@ -108,7 +108,9 @@ impl RawInputMode {
         use termios::*;
 
         let stdin = io::stdin();
-        let stdout = io::stdout();
+        let mut stdout = io::stdout();
+        stdout.write(b"\x1b[?1049h")?;
+        stdout.flush()?;
 
         let fd = stdin.as_raw_fd();
         let mut raw = Termios::from_fd(fd)?; // 0 for stdin
@@ -121,6 +123,7 @@ impl RawInputMode {
         raw.c_lflag &= !(ECHO | ICANON | IEXTEN | ISIG);
         raw.c_cc[VMIN] = 0;
         raw.c_cc[VTIME] = 1;
+
         tcsetattr(fd, TCSAFLUSH, &raw)?;
         Ok(RawInputMode {
             stdin,
@@ -133,11 +136,11 @@ impl RawInputMode {
 impl Drop for RawInputMode {
     fn drop(&mut self) {
         use termios::*;
-        // self.stdout
-        //     .write_all(b"\x1b[2J\x1b[1H")
-        //     .expect("failed to clean up screen");
-
         tcsetattr(self.stdin.as_raw_fd(), TCSAFLUSH, &self.original)
             .expect("cannot set original TC attributes");
+
+        self.stdout
+            .write_all(b"\x1b[?1049l")
+            .expect("failed to clean up screen");
     }
 }
