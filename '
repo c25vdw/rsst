@@ -1,12 +1,12 @@
-use crate::{current_dir, BufRead, BufReader, Buffer, CursorDir, Result, State};
+use crate::{current_dir, BufRead, BufReader, Buffer, CursorDir, Result, State, Subscription};
 
 use super::feeding::Feeding;
 use crate::buffer::consts::*;
-use crate::entities::subscription::Subscription;
 
 pub struct Landing {
     pub subscriptions: Vec<Subscription>,
     pub buf: Buffer,
+    pub prev: Option<Box<dyn State>>,
 }
 
 impl Landing {
@@ -39,6 +39,7 @@ impl Landing {
             return Ok(Self {
                 buf: subscriptions.clone().into(),
                 subscriptions,
+                prev: None,
             });
         }
         Ok(Self {
@@ -48,6 +49,7 @@ impl Landing {
                 rows: vec![],
             },
             subscriptions: vec![],
+            prev: None,
         })
     }
 }
@@ -58,32 +60,35 @@ impl State for Landing {
             DOWN => self.buf.move_cursor(CursorDir::Down),
             UP => self.buf.move_cursor(CursorDir::Up),
             RIGHT => {
+                // self.feed_controller
+                //     .load_subscription(self.subscription_controller.select())?
+                // self.state = AppState::Feeds;
+
                 let selected_sub = self
                     .subscriptions
                     .get(self.buf.cy - 1)
                     .expect("failed to get the selected subsctription")
                     .clone();
+                crate::debug(
+                    format!(
+                        "selected sub is: {:?}, we are getting the {:?}th sub with cy = {:?}",
+                        selected_sub,
+                        self.buf.cy - 1,
+                        self.buf.cy
+                    )
+                    .as_str(),
+                )?;
                 let mut new_state = Feeding {
                     buf: self.buf,
                     subscriptions: self.subscriptions,
-                    feedings: vec![],
+                    prev: Some(self),
                 };
                 new_state.load_subscription(selected_sub)?;
-                new_state.bind_buf();
                 return Ok(Some(Box::new(new_state)));
             }
-            LEFT => return Ok(None),
             _ => (),
         }
         Ok(Some(Box::new(*self)))
-    }
-
-    fn bind_buf(&mut self) {
-        self.buf.rows = self
-            .subscriptions
-            .iter()
-            .map(|x| x.url.clone())
-            .collect::<Vec<_>>();
     }
 
     fn buf_ref(&self) -> &Buffer {

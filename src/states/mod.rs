@@ -7,4 +7,5 @@ use crate::Result;
 pub trait State {
     fn handle_key_then_next(self: Box<Self>, byte: u8) -> Result<Option<Box<dyn State>>>;
     fn buf_ref(&self) -> &Buffer;
+    fn bind_buf(&mut self);
 }

@@ -1,12 +1,16 @@
-use crate::{Buffer, Channel, CursorDir, Result, State, Subscription};
+use crate::{Buffer, Channel, CursorDir, Result, State};
 
 use super::landing::Landing;
+use super::reading::Reading;
 use crate::buffer::consts::*;
+use crate::entities::feed::Feed;
+use crate::entities::subscription::Subscription;
 use anyhow::anyhow;
 
 pub struct Feeding {
     pub buf: Buffer,
     pub subscriptions: Vec<Subscription>,
+    pub feedings: Vec<Feed>,
 }
 
 impl Feeding {
@@ -14,13 +18,12 @@ impl Feeding {
         if let Ok(content) = reqwest::blocking::get(&sub.url) {
             if let Ok(content) = content.bytes() {
                 let channel = Channel::read_from(&content[..])?;
-
-                // self.write_outputs(format!("{:?}", channel).as_str())?;
-                self.buf.rows = channel
+                self.feedings = channel
                     .items()
                     .iter()
-                    .map(|item| item.title().unwrap_or(&"unknown title").to_string())
+                    .map(|item| Feed { item: item.clone() })
                     .collect::<Vec<_>>();
+
                 Ok(())
             } else {
                 Err(anyhow!("failed to load bytes".to_string()))
@@ -36,15 +39,26 @@ impl State for Feeding {
         match byte {
             DOWN => self.buf.move_cursor(CursorDir::Down),
             UP => self.buf.move_cursor(CursorDir::Up),
-            RIGHT => {
-                // self.feed_controller
-                //     .load_subscription(self.subscription_controller.select())?
-                // self.state = AppState::Feeds;
+            RIGHT => return Ok(Some(Box::new(Reading::from_feeding(self)))),
+            LEFT => {
+                let mut prev = Landing {
+                    buf: Buffer::default(),
+                    subscriptions: self.subscriptions,
+                };
+                prev.bind_buf();
+                return Ok(Some(Box::new(prev)));
             }
-            LEFT => return Ok(Some(Landing::new_boxed()?)),
             _ => (),
         }
         Ok(Some(Box::new(*self)))
+    }
+
+    fn bind_buf(&mut self) {
+        self.buf.rows = self
+            .feedings
+            .iter()
+            .map(|feed| feed.item.title().unwrap_or(&"unknown title").to_string())
+            .collect::<Vec<_>>();
     }
 
     fn buf_ref(&self) -> &Buffer {

@@ -1,14 +1,13 @@
 mod buffer;
+mod entities;
 mod screen;
 mod states;
-mod subscription;
 
 use crate::states::landing::Landing;
 pub use anyhow::Result;
 pub use buffer::{Buffer, CursorDir};
 pub use screen::{RawInputMode, Screen};
 pub use states::State;
-pub use subscription::Subscription;
 
 use rss::Channel;
 use std::env::current_dir;
