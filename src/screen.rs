@@ -62,6 +62,7 @@ impl Screen {
         if let Ok((rows, cols)) = self.get_cursor_position() {
             self.height = rows;
             self.width = cols;
+            return Ok((cols, rows));
         }
         self.stdout.write(b"\x1b[;H")?;
         Ok((0, 0))
@@ -85,12 +86,24 @@ impl Screen {
         // place cursor at the beginning
         self.write_flush(b"\x1b[2J\x1b[1H")?;
 
+        use std::cmp::min;
+
         let mut output_buf = Vec::with_capacity((self.height as usize + 2) * self.width as usize);
-        // write out all the rows
-        for row in buf.rows.iter() {
-            // println!("{}\r", row);
-            write!(output_buf, "{}\r\n", row)?;
+
+        for render_y in buf.rows[buf.display_y_start
+            ..min(
+                buf.rows.len(),
+                buf.display_y_start + self.height as usize - 1,
+            )]
+            .iter()
+        {
+            write!(output_buf, "{}\r\n", render_y)?;
         }
+        // write out all the rows
+        // for row in buf.rows.iter() {
+        //     // println!("{}\r", row);
+        //     write!(output_buf, "{}\r\n", row)?;
+        // }
         write!(output_buf, "\x1b[{};{}H", buf.cy, buf.cx)?;
         self.write_flush(&output_buf)?;
         Ok(())

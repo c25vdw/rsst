@@ -5,7 +5,8 @@ use crate::buffer::consts::*;
 use crate::entities::feed::Feed;
 use crate::entities::subscription::Subscription;
 
-use crate::{Buffer, CursorDir, Result, State};
+use crate::{Buffer, CursorDir, Result, Screen, State};
+use textwrap::fill;
 
 pub struct Reading {
     buf: Buffer,
@@ -14,7 +15,7 @@ pub struct Reading {
 }
 
 impl Reading {
-    pub fn from_feeding(old: Box<Feeding>) -> Self {
+    pub fn from_feeding(old: Box<Feeding>) -> Result<Self> {
         if let Some(selected_feed) = old.feedings.get(old.buf.cy - 1) {
             if let Some(html_content_bytes) = selected_feed
                 .item
@@ -22,22 +23,35 @@ impl Reading {
                 .and_then(|str_ref| Some(str_ref.as_bytes()))
             {
                 let rendered = from_read(html_content_bytes, 10000);
-                let rows = rendered.lines().map(|l| l.to_string()).collect::<Vec<_>>();
-                return Reading {
-                    buf: Buffer {
-                        rows,
-                        ..Buffer::default()
-                    },
+                let (width, _) = {
+                    let mut screen = Screen::new()?;
+                    screen.get_window_size()?
+                };
+                let rows = rendered
+                    .lines()
+                    .flat_map(|l| {
+                        // l.to_string()
+                        match l.len() {
+                            0 => vec![l.to_string()],
+                            _ => fill(l, width as usize)
+                                .lines()
+                                .map(|prev| prev.to_string())
+                                .collect::<Vec<_>>(),
+                        }
+                    })
+                    .collect::<Vec<_>>();
+                return Ok(Reading {
+                    buf: Buffer::from_rows(rows)?,
                     subscriptions: old.subscriptions,
                     feedings: old.feedings,
-                };
+                });
             }
         }
-        Reading {
+        Ok(Reading {
             buf: Buffer::default(),
             subscriptions: old.subscriptions,
             feedings: old.feedings,
-        }
+        })
     }
 }
 

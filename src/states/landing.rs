@@ -37,16 +37,17 @@ impl Landing {
                 })
                 .collect::<Vec<Subscription>>();
             return Ok(Self {
-                buf: subscriptions.clone().into(),
+                buf: Buffer::from_rows(
+                    subscriptions
+                        .iter()
+                        .map(|x| x.url.clone())
+                        .collect::<Vec<_>>(),
+                )?,
                 subscriptions,
             });
         }
         Ok(Self {
-            buf: Buffer {
-                cx: 1,
-                cy: 1,
-                rows: vec![],
-            },
+            buf: Buffer::default(),
             subscriptions: vec![],
         })
     }
@@ -79,11 +80,14 @@ impl State for Landing {
     }
 
     fn bind_buf(&mut self) {
-        self.buf.rows = self
-            .subscriptions
-            .iter()
-            .map(|x| x.url.clone())
-            .collect::<Vec<_>>();
+        self.buf = Buffer::from_rows(
+            self.subscriptions
+                .iter()
+                .map(|x| x.url.clone())
+                .collect::<Vec<_>>(),
+        )
+        .ok()
+        .unwrap();
     }
 
     fn buf_ref(&self) -> &Buffer {

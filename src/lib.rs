@@ -24,6 +24,12 @@ pub fn debug(out: &str) -> Result<()> {
     Ok(())
 }
 
+pub fn get_terminal_dimension() -> Result<(usize, usize)> {
+    let mut screen = Screen::new()?;
+    let (width, height) = screen.get_window_size()?;
+    Ok((width as usize, height as usize))
+}
+
 pub fn run() -> Result<()> {
     let mut screen = Screen::new()?;
     let mut state: Box<dyn State> = Landing::new_boxed()?;

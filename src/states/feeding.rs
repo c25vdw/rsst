@@ -39,7 +39,7 @@ impl State for Feeding {
         match byte {
             DOWN => self.buf.move_cursor(CursorDir::Down),
             UP => self.buf.move_cursor(CursorDir::Up),
-            RIGHT => return Ok(Some(Box::new(Reading::from_feeding(self)))),
+            RIGHT => return Ok(Some(Box::new(Reading::from_feeding(self)?))),
             LEFT => {
                 let mut prev = Landing {
                     buf: Buffer::default(),
